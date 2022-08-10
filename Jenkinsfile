@@ -7,19 +7,24 @@ pipeline {
     }
 
     stages {
-        
-        
-         stage("Maven Build") {
-           steps {
-                script {
-                    sh "mvn clean package -DskipTests=true"
-                }
+        stage('Build') {
+            steps {
+                // Get some code from a GitHub repository
+                git 'https://github.com/krishnaveni-byte/mydemo.git'
+
+                // Run Maven on a Unix agent.
+                sh "mvn -Dmaven.test.failure.ignore=true clean package"
+
+                // To run Maven on a Windows agent, use
+                // bat "mvn -Dmaven.test.failure.ignore=true clean package"
             }
         }
-        stage("build docker image"){
+
+            stage("build docker image"){
             steps{
                 script{
-            
+                    sh 'docker version'
+                    
                     sh "docker build -t tomcat:8.0.53 ."
             
                 }
@@ -28,47 +33,26 @@ pipeline {
         stage('push docker image'){
             steps{
                 script{
-                    withCredentials([string(credentialsId: '86681', variable: 'dockerhubcred')]) {
-                        sh "docker login -u 86681 -p ${dockerhubcred}"
-                        sh "docker tag tomcat:8.0.53 86681/tomcat:8.0.53 "
-                        sh 'docker push 86681/tomcat:8.0.53 '
-                        sh 'aws eks update-kubeconfig --name demo-eks'
+                    withCredentials([string(credentialsId: 'newkey', variable: 'password')]) {
+                        sh "docker login -u my321docker321 -p $password"
+                        sh "docker tag tomcat:8.0.53 my321docker321/tomcat:8.0.53 "
+                      //sh "docker tag tomcat:8.0.53 86681/tomcat:8.0.53 "
+                        sh 'docker push my321docker321/tomcat:8.0.53 '
+                       sh 'aws eks update-kubeconfig --name my-test-cluster'
 
                     }
                 }
             }
         }
-
-                  stage('deployment in kubernetes'){
+        
+        stage('kubernetes'){
                       steps{
-                          script{
-                              
-                            sh 'kubectl delete -f depolyment.yml || true'  
-                              
+                        script{
+                            sh ' kubectl delete -f depolyment.yml || true'
                             sh 'kubectl apply -f depolyment.yml '
-                          }
+                        } 
                       }
                   } 
-         stage ('eks'){
-                      
-                      steps {
-                          withKubeCredentials([
-[clusterName: 'demo-eks', contextName: "iam-root-account@demo-eks.ap-south-1.eksctl.io", credentialsId: "demo", namespace: "default", serverUrl: "https://6831BB996050BF074C9168021656AAFC.gr7.ap-south-1.eks.amazonaws.com"]
-])
-{
-     
-     script {
-         sh """
-          kubectl apply -f depolyment.yml
-          sleep 15 
-          kubectl get po 
-          
-          """
-     }
-     
-                      }
-                  }
-                }
-                }
-            }
         
+    }
+}
