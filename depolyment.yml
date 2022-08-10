@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: mytomcat
-          image: 86681/tomcat:8.0.53
+          image: my321docker321/tomcat:8.0.53
           ports:
             - containerPort: 8080
           env:
