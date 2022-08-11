@@ -9,14 +9,13 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                // Get some code from a GitHub repository
+                
                 git 'https://github.com/krishnaveni-byte/mydemo.git'
 
-                // Run Maven on a Unix agent.
+               
                 sh "mvn -Dmaven.test.failure.ignore=true clean package"
 
-                // To run Maven on a Windows agent, use
-                // bat "mvn -Dmaven.test.failure.ignore=true clean package"
+                
             }
         }
 
@@ -36,7 +35,7 @@ pipeline {
                     withCredentials([string(credentialsId: 'newkey', variable: 'password')]) {
                         sh "docker login -u my321docker321 -p $password"
                         sh "docker tag tomcat:8.0.53 my321docker321/tomcat:8.0.53 "
-                      //sh "docker tag tomcat:8.0.53 86681/tomcat:8.0.53 "
+                   
                         sh 'docker push my321docker321/tomcat:8.0.53 '
                        sh 'aws eks update-kubeconfig --name my-test-cluster'
 
